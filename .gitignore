@@ -1,0 +1,5 @@
+Caddyfile
+node_modules
+
+recordings/*
+!recordings/.gitkeep

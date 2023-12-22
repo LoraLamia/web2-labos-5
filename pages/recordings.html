@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" async defer>
+
+      (() => {
+
+        let $BODY = null;
+
+        const DATETIME_FORMATTER = new Intl.DateTimeFormat("hr-HR", {
+          dateStyle: "short",
+          timeStyle: "short",
+        });
+
+        const html = (strings, ...values) => {
+          let result = "";
+          for (let i = 0; i < strings.length; i++) {
+            result += strings[i];
+            if (i < values.length) {
+              result += values[i];
+            }
+          }
+          const div = document.createElement("div");
+          div.innerHTML = result;
+          return Array.from(div.children);
+        };
+
+        const render = (...content) => {
+          const elements = content.flat();
+
+          $BODY.replaceChildren(...elements);
+        };
+
+        const html$ = (strings, ...values) => render(html(strings, ...values));
+
+        const main = async () => {
+          $BODY = document.querySelector("body");
+
+          const recordings = await fetch("/api/recordings")
+            .then((res) => res.json())
+            .then((res) =>
+              res.recordings
+                .map((x) => {
+                  const id = String(x.recordingId);
+
+                  return {
+                    id,
+                    date: new Date(parseInt(id.split("-").shift(), 36)),
+                  };
+                })
+                .sort((lt, gt) => gt.date - lt.date)
+            )
+            .catch(() => []);
+
+          html$`
+              <main>
+                  <h1>PWA primjer - Snimke</h1>
+                  <ul>
+                  ${recordings
+                    .map(
+                      (rec) =>
+                        `<li>
+                            <a href="/recordings/${rec.id}.html">${rec.id}</a>
+                            | (${DATETIME_FORMATTER.format(rec.date)})
+                        </li>`
+                    )
+                    .join("")}
+                  </ul
+              </main>
+          `;
+        };
+
+        main();
+      })();
+    </script>
+    <title>PWA - Snimke</title>
+  </head>
+  <body>
+    <main>Učitavanje...</main>
+  </body>
+</html>
